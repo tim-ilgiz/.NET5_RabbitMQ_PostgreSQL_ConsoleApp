@@ -1,0 +1,81 @@
+version: '3.9'
+
+services:
+  dbpostgres:
+    image: postgres:latest
+    container_name: dbpostgres
+    ports:
+      - 5555:5432
+    restart: always
+    volumes:
+      - db_volume:/var/lib/postgresql/data      
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "pass"
+      POSTGRES_DB: "smsprocessingservice_pg_db"
+    networks:
+      - detreeapi-dev
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: 'rabbitmq'
+    tty: true
+    ports:
+      - 5672:5672
+      - 15672:15672
+    expose:
+     - 15672
+     - 5672
+    environment:
+      RABBITMQ_DEFAULT_USER: "owner"
+      RABBITMQ_DEFAULT_PASS: "owner"
+    restart: always
+    networks:
+      - detreeapi-dev
+
+  smswebapi:
+    image: webapi:latest
+    container_name: webapi
+    depends_on:
+      - dbpostgres
+      - rabbitmq
+    links: 
+      - rabbitmq
+    build:
+      context: ..
+      dockerfile: WebApi/Dockerfile   
+    restart: always 
+    environment:
+      SS_ConnectionStrings__PG_CONNECTION_STRING: "host=host.docker.internal;port=5555;database=smsprocessingservice_pg_db;username=postgres;password=pass;"    
+      ASPNETCORE_ENVIRONMENT: "Development"
+      HOSTNAMERABBIT: rabbitmq
+    ports:
+      - 5444:80
+    networks:
+      - detreeapi-dev
+
+  smsconsoleapp:
+    image: consoleapp:latest
+    container_name: consoleapp
+    depends_on:
+      - dbpostgres
+      - rabbitmq
+    links: 
+      - rabbitmq
+    build:
+      context: ..
+      dockerfile: ConsoleApplication/Dockerfile   
+    restart: always 
+    environment:
+      SS_ConnectionStrings__PG_CONNECTION_STRING: "host=host.docker.internal;port=5555;database=smsprocessingservice_pg_db;username=postgres;password=pass;"    
+      ASPNETCORE_ENVIRONMENT: "Development"
+      HOSTNAMERABBIT: rabbitmq
+    networks:
+      - detreeapi-dev
+
+volumes:
+  db_volume:
+
+networks:
+  detreeapi-dev:
+    driver: bridge 
