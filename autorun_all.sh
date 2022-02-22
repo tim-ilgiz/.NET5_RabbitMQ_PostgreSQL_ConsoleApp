@@ -7,11 +7,11 @@ export GID=$(id -g)
 echo "Запуск принудительной очистки..."
 cd docker-compose
 
-docker-compose down || (echo "Ошибка! Не удалось остановить сервисы."; exit 1)
-docker system prune 
-docker volume prune
+# docker-compose down || (echo "Ошибка! Не удалось остановить сервисы."; exit 1)
+# docker system prune 
+# docker volume prune
 
-echo "Принудительная очистка завершена!"
+# echo "Принудительная очистка завершена!"
 
 sleep 2
 

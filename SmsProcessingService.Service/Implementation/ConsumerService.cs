@@ -90,7 +90,7 @@ namespace SmsProcessingService.Service.Implementation
                 if (sms != null)
                 {
                     sms.Id = Guid.NewGuid();
-                    sms.Status = sms.To.All(c => Regex.Match(c, @"^((\+7|7|8|+61)+([0-9]){10})$").Success)
+                    sms.Status = sms.To.All(c => Regex.Match(c, @"^((\+7|7|8|\+61)+([0-9]){10})$").Success)
                         ? SmsStatus.Delivered
                         : SmsStatus.Failed;
 
